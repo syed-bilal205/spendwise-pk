@@ -32,7 +32,7 @@ export default function App() {
   const small = smallPurchaseStats(transactions, month, state.settings.smallPurchaseThreshold);
   const compare = monthComparison(transactions, month);
   const committeeOut = (state.committeePayments || []).filter((p) => p.paid && p.date?.slice(0,7) === month).reduce((sum,p) => sum + Number(p.amount || 0), 0);
-  const debtPaid = (state.debts || []).reduce((sum,d) => sum + (d.direction || "i_owe" === "i_owe" ? 0 : 0) + (d.payments || []).filter((p) => p.date?.slice(0,7) === month && (d.direction || "i_owe") === "i_owe").reduce((s,p) => s + Number(p.amount || 0),0),0);
+  const debtPaid = (state.debts || []).filter((d) => (d.direction || "i_owe") === "i_owe").reduce((sum,d) => sum + (d.payments || []).filter((p) => p.date?.slice(0,7) === month).reduce((s,p) => s + Number(p.amount || 0),0),0);
   const debtReceived = (state.debts || []).filter((d) => d.direction === "they_owe").reduce((sum,d) => sum + (d.payments || []).filter((p) => p.date?.slice(0,7) === month).reduce((s,p) => s + Number(p.amount || 0),0),0);
   const cashFlow = incomeTotal - spent - committeeOut - debtPaid + debtReceived;
   const liabilities = (state.debts || []).filter((d) => (d.direction || "i_owe") === "i_owe").reduce((sum,d) => sum + outstanding(d),0);
