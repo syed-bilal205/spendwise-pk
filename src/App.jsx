@@ -8,6 +8,7 @@ import TransactionForm from "./components/TransactionForm";
 import Income from "./components/Income";
 import Committee from "./components/Committee";
 import Debt from "./components/Debt";
+import CashFlowPlan from "./components/CashFlowPlan";
 
 const COLORS = ["#4f46e5", "#0d9488", "#f59e0b", "#ec4899", "#64748b", "#8b5cf6", "#06b6d4", "#84cc16"];
 const now = new Date();
@@ -66,6 +67,7 @@ export default function App() {
       <nav className="mb-6 flex gap-2 overflow-x-auto pb-1">{nav.map(([key,Icon,label]) => <button key={key} onClick={() => { setPage(key); setShowForm(false); }} className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${page === key ? "bg-slate-900 text-white" : "border border-slate-200 bg-white text-slate-600"}`}><Icon size={16}/>{label}</button>)}</nav>
       {showForm && (page === "overview" || page === "transactions") && <div className="card mb-6 p-4"><div className="mb-4 flex justify-between"><h3 className="font-semibold">Add an expense or card transaction</h3><button className="text-sm text-slate-500" onClick={() => setShowForm(false)}>Close</button></div><TransactionForm onDone={() => setShowForm(false)}/></div>}
       {page === "income" ? <Income month={month}/> : page === "debt" ? <Debt/> : page === "committee" ? <Committee/> : page === "transactions" ? <Transactions rows={filtered} search={search} setSearch={setSearch} dispatch={dispatch}/> : <>
+        <CashFlowPlan/>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Metric title="Income received" value={money(incomeTotal)} sub={`Salary: ${money(salary)}`} icon={<ArrowUpRight/>} positive/>
           <Metric title="Net expenses" value={money(spent)} sub={`Card budget: ${money(state.settings.monthlyCardBudget)}`} icon={<ArrowDownRight/>}/>
