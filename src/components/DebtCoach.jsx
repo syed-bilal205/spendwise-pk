@@ -24,6 +24,7 @@ export default function DebtCoach() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [accessCode, setAccessCode] = useState("");
 
   const snapshot = useMemo(() => {
     const month = currentMonth();
@@ -110,6 +111,7 @@ export default function DebtCoach() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question: content,
+          accessCode,
           history: messages.slice(-8),
           financialSnapshot: snapshot,
         }),
@@ -146,7 +148,8 @@ export default function DebtCoach() {
         {loading && <div className="flex items-center gap-2 text-sm text-slate-500"><div className="h-2 w-2 animate-pulse rounded-full bg-indigo-500"/><span>Reviewing your numbers…</span></div>}
         <div aria-live="polite">{error && <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div>}</div>
       </div>
-      <form className="border-t border-slate-100 p-3" onSubmit={(event) => { event.preventDefault(); sendMessage(); }}>
+      <div className="border-t border-slate-100 px-3 pt-3"><label className="block text-xs font-medium text-slate-600">Coach access code <input className="field mt-1" type="password" autoComplete="off" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} placeholder="Enter the code configured in Netlify" /></label><p className="mt-1 text-[11px] text-slate-400">Kept in memory for this browser session only.</p></div>
+      <form className="p-3" onSubmit={(event) => { event.preventDefault(); sendMessage(); }}>
         <div className="flex items-end gap-2"><textarea className="field max-h-32 min-h-12 resize-y" rows={2} maxLength={1500} placeholder="Ask how to reduce your debt..." value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); sendMessage(); } }} /><button className="btn h-12 shrink-0 px-3" type="submit" disabled={loading || !question.trim()} aria-label="Send message"><Send size={17}/></button></div>
         <p className="mt-2 text-[11px] text-slate-400">Enter to send · Shift + Enter for a new line · 1,500 characters max</p>
       </form>
@@ -166,7 +169,7 @@ export default function DebtCoach() {
         </div>
       </section>
       <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-950">
-        <b>Before you share:</b> Your question and a financial summary are sent to the AI service to generate an answer. Creditor names and notes are excluded. Do not type card numbers, passwords, PINs, or other secrets.
+        <b>Before you share:</b> Your question and a financial summary are sent to the AI service to generate an answer. Creditor names and private notes from tracker records are excluded from the automatic snapshot. Anything you type in chat is sent to the AI service. Do not type card numbers, passwords, PINs, or other secrets.
       </section>
       <p className="px-1 text-xs leading-5 text-slate-500">Guidance only, not professional financial advice. Verify due dates, interest, fees, and balances with the relevant lender or person before acting. The coach cannot make payments or edit your records.</p>
     </aside>
