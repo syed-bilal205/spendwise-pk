@@ -20,6 +20,7 @@ import {
   WalletCards,
   TrendingUp,
   AlertTriangle,
+  HandCoins,
 } from "lucide-react";
 import { useApp } from "./state/AppContext";
 import {
@@ -33,6 +34,7 @@ import {
 } from "./utils/finance";
 import TransactionForm from "./components/TransactionForm";
 import Committee from "./components/Committee";
+import Debt from "./components/Debt";
 
 const COLORS = [
   "#4f46e5",
@@ -159,7 +161,7 @@ export default function App() {
                 ? "Overview"
                 : page === "transactions"
                   ? "Transactions"
-                  : "Committee payments"}
+                  : page === "debt" ? "Debt tracker" : "Committee payments"}
             </h2>
             <p className="mt-1 text-sm text-slate-500">
               A clear view of your credit-card spending.
@@ -182,7 +184,7 @@ export default function App() {
           {[
             ["overview", LayoutDashboard, "Overview"],
             ["transactions", ReceiptText, "Transactions"],
-            ["committee", Users, "Committee"],
+            ["committee", Users, "Committee"],\n            ["debt", HandCoins, "Debt"],
           ].map(([key, Icon, label]) => (
             <button
               key={key}
@@ -194,7 +196,7 @@ export default function App() {
             </button>
           ))}
         </nav>
-        {showForm && (
+        {showForm && page !== "debt" && (
           <div className="card mb-6 p-4">
             <div className="mb-4 flex justify-between">
               <h3 className="font-semibold">Add transaction</h3>
