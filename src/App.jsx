@@ -164,27 +164,28 @@ export default function App() {
                   : page === "debt" ? "Debt tracker" : "Committee payments"}
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              A clear view of your credit-card spending.
+              {page === "debt" ? "Track money you owe and repayments." : "A clear view of your credit-card spending."}
             </p>
           </div>
           <div className="flex gap-2">
-            <input
+            {page !== "debt" && <input
               aria-label="Select month"
               className="field !w-auto"
               type="month"
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-            />
-            <button className="btn" onClick={() => setShowForm((v) => !v)}>
+            />}
+            {page !== "debt" && <button className="btn" onClick={() => setShowForm((v) => !v)}>
               <Plus size={17} /> Add
-            </button>
+            </button>}
           </div>
         </div>
         <nav className="mb-6 flex gap-2 overflow-x-auto">
           {[
             ["overview", LayoutDashboard, "Overview"],
             ["transactions", ReceiptText, "Transactions"],
-            ["committee", Users, "Committee"],\n            ["debt", HandCoins, "Debt"],
+            ["committee", Users, "Committee"],
+            ["debt", HandCoins, "Debt"],
           ].map(([key, Icon, label]) => (
             <button
               key={key}
@@ -210,7 +211,9 @@ export default function App() {
             <TransactionForm onDone={() => setShowForm(false)} />
           </div>
         )}
-        {page === "committee" ? (
+        {page === "debt" ? (
+          <Debt />
+        ) : page === "committee" ? (
           <Committee />
         ) : page === "transactions" ? (
           <Transactions
