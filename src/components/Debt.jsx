@@ -13,7 +13,15 @@ export default function Debt() {
   const payable = debts.filter((d) => (d.direction || "i_owe") === "i_owe");
   const receivable = debts.filter((d) => d.direction === "they_owe");
   const sumOpen = (items) => items.reduce((sum, d) => sum + outstanding(d), 0);
-  const chartData = debts.map((d) => ({ person: d.name.length > 13 ? d.name.slice(0, 12) + "…" : d.name, balance: outstanding(d), direction: d.direction || "i_owe" })).filter((d) => d.balance > 0);
+  const chartMap = new Map();
+  debts.forEach((d) => {
+    const person = d.name.length > 13 ? d.name.slice(0, 12) + "…" : d.name;
+    const row = chartMap.get(person) || { person, iOwe: 0, theyOwe: 0 };
+    if ((d.direction || "i_owe") === "i_owe") row.iOwe += outstanding(d);
+    else row.theyOwe += outstanding(d);
+    chartMap.set(person, row);
+  });
+  const chartData = [...chartMap.values()].filter((d) => d.iOwe > 0 || d.theyOwe > 0);
   function addDebt(e) {
     e.preventDefault();
     const amount = Number(form.amount);
@@ -50,7 +58,7 @@ export default function Debt() {
       <label className="text-sm font-medium sm:col-span-2">Note (optional)<input className="field mt-1" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></label>
       <button className="btn sm:col-span-2">Save debt</button>
     </form>
-    {chartData.length > 0 && <section className="card p-4"><h3 className="font-semibold">Outstanding by person</h3><p className="mb-3 text-xs text-slate-500">Open balances across both directions</p><div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="person" tick={{ fontSize: 11 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip formatter={(value) => money(value)} /><Bar dataKey="balance" name="Outstanding" fill="#6366f1" radius={[5,5,0,0]} /></BarChart></ResponsiveContainer></div></section>}
+    {chartData.length > 0 && <section className="card p-4"><h3 className="font-semibold">Outstanding by person</h3><p className="mb-3 text-xs text-slate-500">Open balances across both directions</p><div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="person" tick={{ fontSize: 11 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip formatter={(value) => money(value)} /><Bar dataKey="iOwe" name="I owe" stackId="debt" fill="#6366f1" radius={[5,5,0,0]} /><Bar dataKey="theyOwe" name="Owes me" stackId="debt" fill="#0d9488" radius={[5,5,0,0]} /></BarChart></ResponsiveContainer></div></section>}
     {renderGroup("People I owe", payable, "i_owe")}
     {renderGroup("People who owe me", receivable, "they_owe")}
   </div>;
