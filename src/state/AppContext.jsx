@@ -5,11 +5,14 @@ const KEY = "spendwise-pk-v1";
 const initial = {
   settings: { monthlyCardBudget: 70000, smallPurchaseThreshold: 1000 },
   transactions: [],
-  committeePayments: []
+  committeePayments: [],
+  debts: [],
 };
 function loadState() {
-  try { const saved = JSON.parse(localStorage.getItem(KEY)); return saved ? { ...initial, ...saved } : initial; }
-  catch { return initial; }
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));
+    return saved ? { ...initial, ...saved, debts: saved.debts || [] } : initial;
+  } catch { return initial; }
 }
 function reducer(state, action) {
   switch (action.type) {
@@ -20,7 +23,16 @@ function reducer(state, action) {
     case "SET_THRESHOLD": return { ...state, settings: { ...state.settings, smallPurchaseThreshold: Math.max(0, Number(action.payload) || 0) } };
     case "ADD_COMMITTEE_PAYMENT": return { ...state, committeePayments: [action.payload, ...state.committeePayments] };
     case "TOGGLE_COMMITTEE_PAYMENT": return { ...state, committeePayments: state.committeePayments.map(p => p.id === action.payload ? { ...p, paid: !p.paid } : p) };
-    case "IMPORT_BACKUP": return { ...initial, ...action.payload };
+    case "ADD_DEBT": return { ...state, debts: [action.payload, ...(state.debts || [])] };
+    case "ADD_DEBT_PAYMENT": return { ...state, debts: (state.debts || []).map(d => {
+      if (d.id !== action.payload.debtId) return d;
+      const paid = (d.payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+      const amount = Number(action.payload.payment.amount);
+      if (!Number.isFinite(amount) || amount <= 0 || amount > Number(d.amount) - paid) return d;
+      return { ...d, payments: [...(d.payments || []), action.payload.payment] };
+    }) };
+    case "DELETE_DEBT": return { ...state, debts: (state.debts || []).filter(d => d.id !== action.payload) };
+    case "IMPORT_BACKUP": return { ...initial, ...action.payload, debts: action.payload.debts || [] };
     default: return state;
   }
 }

@@ -25,6 +25,8 @@ The included `netlify.toml` already sets these values.
 - Card repayments are transfers and do not count as new spending.
 - Refunds reduce net spending.
 - Committee contributions are tracked separately from consumption spending.
+- Debt records track money owed to people; partial repayments reduce the outstanding balance and are kept in a separate payment history.
+- Debt repayments are not counted as credit-card expenses.
 - Data is stored in this browser's LocalStorage. Export a backup regularly.
 - Do not enter card numbers, CVV, PINs, passwords, or other banking credentials.
 
@@ -32,4 +34,5 @@ The included `netlify.toml` already sets these values.
 1. `src/state/AppContext.jsx` — Context API and reducer.
 2. `src/utils/finance.js` — financial calculations.
 3. `src/components/TransactionForm.jsx` — controlled form state.
-4. `src/App.jsx` — page composition and derived dashboard views.
+4. `src/components/Debt.jsx` — debt records and partial repayments.
+5. `src/App.jsx` — page composition and derived dashboard views.
