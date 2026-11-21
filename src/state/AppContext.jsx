@@ -3,13 +3,13 @@ import { id } from "../utils/finance";
 
 const KEY = "spendwise-pk-v1";
 const initial = {
-  settings: { monthlyCardBudget: 70000, smallPurchaseThreshold: 1000 },
+  settings: { monthlyCardBudget: 70000, smallPurchaseThreshold: 1000, financialPlan: { expectedSalary: 119700, salaryDate: "2026-12-07", openingCardBill: 103323.01, cardBillDueDate: "2026-12-10", monthlyCommittee: 20000, committeeDueDay: 10, monthlyDebtTarget: 29700 } },
   transactions: [], incomes: [], committeePayments: [], debts: [],
 };
 function normalize(data = {}) {
   return {
     ...initial, ...data,
-    settings: { ...initial.settings, ...(data.settings || {}) },
+    settings: { ...initial.settings, ...(data.settings || {}), financialPlan: { ...initial.settings.financialPlan, ...((data.settings || {}).financialPlan || {}) } },
     transactions: Array.isArray(data.transactions) ? data.transactions : [],
     incomes: Array.isArray(data.incomes) ? data.incomes : [],
     committeePayments: Array.isArray(data.committeePayments) ? data.committeePayments : [],
@@ -27,6 +27,7 @@ function reducer(state, action) {
     case "DELETE_TRANSACTION": return { ...state, transactions: state.transactions.filter((t) => t.id !== action.payload) };
     case "ADD_INCOME": return { ...state, incomes: [action.payload, ...(state.incomes || [])] };
     case "DELETE_INCOME": return { ...state, incomes: state.incomes.filter((item) => item.id !== action.payload) };
+    case "SET_FINANCIAL_PLAN": return { ...state, settings: { ...state.settings, financialPlan: { ...state.settings.financialPlan, ...action.payload } } };
     case "SET_BUDGET": return { ...state, settings: { ...state.settings, monthlyCardBudget: Math.max(0, Number(action.payload) || 0) } };
     case "SET_THRESHOLD": return { ...state, settings: { ...state.settings, smallPurchaseThreshold: Math.max(0, Number(action.payload) || 0) } };
     case "ADD_COMMITTEE_PAYMENT": return { ...state, committeePayments: [action.payload, ...state.committeePayments] };

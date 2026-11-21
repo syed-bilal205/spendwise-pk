@@ -11,12 +11,17 @@ export function exportFinancialReport(state, month) {
   const incomeTotal = incomes.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const liabilities = (state.debts || []).filter((d) => (d.direction || "i_owe") === "i_owe").reduce((sum, d) => sum + outstanding(d), 0);
   const receivables = (state.debts || []).filter((d) => d.direction === "they_owe").reduce((sum, d) => sum + outstanding(d), 0);
+  const plan = state.settings?.financialPlan || {};
+  const plannedSalary = Number(plan.expectedSalary || 0);
+  const plannedCommittee = Number(plan.monthlyCommittee || 0);
+  const openingCardBill = Number(plan.openingCardBill || 0);
   doc.setFontSize(20); doc.text("SpendWise PK", 14, 18);
   doc.setFontSize(11); doc.text("Personal finance report · " + month, 14, 26);
   doc.setFontSize(10); doc.text("Generated " + new Date().toLocaleString(), 14, 33);
   autoTable(doc, { startY: 40, head: [["Monthly summary", "PKR"]], body: [
     ["Income", money(incomeTotal)], ["Net expenses", money(expenses)], ["Monthly surplus / deficit", money(incomeTotal - expenses)],
     ["Monthly card budget", money(state.settings?.monthlyCardBudget || 0)], ["Outstanding debts you owe", money(liabilities)], ["Money owed to you", money(receivables)],
+    ["Planned salary", money(plannedSalary)], ["Existing card bill to settle", money(openingCardBill)], ["Monthly committee obligation", money(plannedCommittee)], ["December after bill + committee", money(plannedSalary - openingCardBill - plannedCommittee)],
   ], theme: "grid", headStyles: { fillColor: [49, 46, 129] } });
   let y = doc.lastAutoTable.finalY + 10;
   doc.setFontSize(13); doc.text("Income", 14, y);
