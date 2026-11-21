@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+
 const json = (statusCode, payload) => ({
   statusCode,
   headers: {
@@ -28,9 +30,9 @@ export const handler = async (event) => {
     return json(405, { error: "Method not allowed." });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.OPENAI_API_KEY || !process.env.DEBT_COACH_ACCESS_CODE) {
     return json(503, {
-      error: "AI Coach is not configured yet. Add OPENAI_API_KEY to your Netlify environment variables, then redeploy.",
+      error: "AI Coach is not configured yet. Add OPENAI_API_KEY and DEBT_COACH_ACCESS_CODE to your Netlify environment variables, then redeploy.",
       code: "AI_NOT_CONFIGURED",
     });
   }
@@ -40,6 +42,12 @@ export const handler = async (event) => {
     body = JSON.parse(event.body || "{}");
   } catch {
     return json(400, { error: "Request body must be valid JSON." });
+  }
+
+  const expectedCode = Buffer.from(process.env.DEBT_COACH_ACCESS_CODE);
+  const suppliedCode = Buffer.from(typeof body.accessCode === "string" ? body.accessCode : "");
+  if (expectedCode.length !== suppliedCode.length || !timingSafeEqual(expectedCode, suppliedCode)) {
+    return json(401, { error: "That access code is not correct. Check it and try again.", code: "INVALID_ACCESS_CODE" });
   }
 
   const question = typeof body.question === "string" ? body.question.trim() : "";
