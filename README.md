@@ -55,7 +55,7 @@ The AI Coach runs through a Netlify serverless function. The OpenAI API key stay
 
 1. Create an API key in the OpenAI API platform.
 2. In Netlify, open **Site configuration → Environment variables**.
-3. Add `OPENAI_API_KEY` with your secret key. Optionally add `OPENAI_MODEL` to choose a model; the default is `gpt-5.5`.
+3. Add `OPENAI_API_KEY` with your secret key and `DEBT_COACH_ACCESS_CODE` with a long, private access code. Optionally add `OPENAI_MODEL` to choose a model; the default is `gpt-5.5`.
 4. Redeploy the site. The AI Coach page will then be able to answer questions using a summary of your current tracker data.
 
 For local development, use Netlify Dev (`npx netlify dev`) and set `OPENAI_API_KEY` in a local `.env` file that is never committed. Do not put the key in a `VITE_*` variable or frontend code.
