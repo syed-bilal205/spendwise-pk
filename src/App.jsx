@@ -9,6 +9,7 @@ import Income from "./components/Income";
 import Committee from "./components/Committee";
 import Debt from "./components/Debt";
 import CashFlowPlan from "./components/CashFlowPlan";
+import DebtCoach from "./components/DebtCoach";
 
 const COLORS = ["#4f46e5", "#0d9488", "#f59e0b", "#ec4899", "#64748b", "#8b5cf6", "#06b6d4", "#84cc16"];
 const now = new Date();
@@ -55,8 +56,8 @@ export default function App() {
     } catch { alert("This backup file is invalid."); } };
     reader.readAsText(file); e.target.value = "";
   }
-  const nav = [["overview",LayoutDashboard,"Overview"],["income",TrendingUp,"Income"],["transactions",ReceiptText,"Expenses"],["debt",HandCoins,"Debt"],["committee",Users,"Committee"]];
-  const titles = { overview:"Financial overview", income:"Income & salary", transactions:"Expenses", debt:"Debt tracker", committee:"Committee payments" };
+  const nav = [["overview",LayoutDashboard,"Overview"],["income",TrendingUp,"Income"],["transactions",ReceiptText,"Expenses"],["debt",HandCoins,"Debt"],["committee",Users,"Committee"],["coach",Activity,"AI Coach"]];
+  const titles = { overview:"Financial overview", income:"Income & salary", transactions:"Expenses", debt:"Debt tracker", committee:"Committee payments", coach:"AI debt coach" };
   return <div className="min-h-screen">
     <header className="border-b border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4">
       <div className="flex items-center gap-3"><div className="rounded-xl bg-indigo-600 p-2 text-white"><WalletCards size={22}/></div><div><h1 className="text-lg font-bold tracking-tight">SpendWise <span className="text-indigo-600">PK</span></h1><p className="text-xs text-slate-500">Your complete money picture.</p></div></div>
@@ -66,7 +67,7 @@ export default function App() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-bold">{titles[page]}</h2><p className="mt-1 text-sm text-slate-500">Income, spending, savings and outstanding balances in one place.</p></div><div className="flex items-center gap-2"><label className="sr-only" htmlFor="report-month">Report month</label><input id="report-month" aria-label="Select month" className="field !w-auto" type="month" value={month} onChange={(e) => setMonth(e.target.value)}/>{(page === "overview" || page === "transactions") && <button className="btn" onClick={() => setShowForm((v) => !v)}><Plus size={17}/> Add expense</button>}</div></div>
       <nav className="mb-6 flex gap-2 overflow-x-auto pb-1">{nav.map(([key,Icon,label]) => <button key={key} onClick={() => { setPage(key); setShowForm(false); }} className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${page === key ? "bg-slate-900 text-white" : "border border-slate-200 bg-white text-slate-600"}`}><Icon size={16}/>{label}</button>)}</nav>
       {showForm && (page === "overview" || page === "transactions") && <div className="card mb-6 p-4"><div className="mb-4 flex justify-between"><h3 className="font-semibold">Add an expense or card transaction</h3><button className="text-sm text-slate-500" onClick={() => setShowForm(false)}>Close</button></div><TransactionForm onDone={() => setShowForm(false)}/></div>}
-      {page === "income" ? <Income month={month}/> : page === "debt" ? <Debt/> : page === "committee" ? <Committee/> : page === "transactions" ? <Transactions rows={filtered} search={search} setSearch={setSearch} dispatch={dispatch}/> : <>
+      {page === "coach" ? <DebtCoach/> : page === "income" ? <Income month={month}/> : page === "debt" ? <Debt/> : page === "committee" ? <Committee/> : page === "transactions" ? <Transactions rows={filtered} search={search} setSearch={setSearch} dispatch={dispatch}/> : <>
         <CashFlowPlan/>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Metric title="Income received" value={money(incomeTotal)} sub={`Salary: ${money(salary)}`} icon={<ArrowUpRight/>} positive/>

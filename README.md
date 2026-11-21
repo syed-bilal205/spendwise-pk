@@ -48,3 +48,16 @@ The included `netlify.toml` configures these values.
 4. `src/components/Income.jsx` — salary and other income.
 5. `src/components/Debt.jsx` — payable and receivable debt records.
 6. `src/App.jsx` — dashboard, graphs, and navigation.
+
+
+## AI Debt Coach setup
+The AI Coach runs through a Netlify serverless function. The OpenAI API key stays on the server and is never placed in the browser bundle.
+
+1. Create an API key in the OpenAI API platform.
+2. In Netlify, open **Site configuration → Environment variables**.
+3. Add `OPENAI_API_KEY` with your secret key and `DEBT_COACH_ACCESS_CODE` with a long, private access code. Optionally add `OPENAI_MODEL` to choose a model; the default is `gpt-5.5`.
+4. Redeploy the site. The AI Coach page will then be able to answer questions using a summary of your current tracker data.
+
+For local development, use Netlify Dev (`npx netlify dev`) and set both `OPENAI_API_KEY` and `DEBT_COACH_ACCESS_CODE` in a local `.env` file that is never committed. Do not put the key in a `VITE_*` variable or frontend code.
+
+The AI receives your question, recent chat messages, and a limited financial snapshot. Creditor names and private debt notes from tracker records are excluded from the automatic snapshot; anything typed into the chat is sent to the AI service. The coach does not access bank/card accounts or make payments. AI requests may incur OpenAI API charges; check your API billing and usage limits. Verify any recommendation against your actual due dates, interest rates, and essential living costs.
