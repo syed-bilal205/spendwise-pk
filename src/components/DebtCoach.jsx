@@ -61,7 +61,7 @@ export default function DebtCoach() {
       financialPlan: {
         expectedSalary: Number(plan.expectedSalary || 0),
         expectedSalaryDate: plan.salaryDate || null,
-        existingCardBill: Number(plan.openingCardBill || 0),
+        configuredStartingCardBill: Number(plan.openingCardBill || 0),
         cardBillDueDate: plan.cardBillDueDate || null,
         monthlyCommittee: Number(plan.monthlyCommittee || 0),
         committeeDueDay: plan.committeeDueDay || null,
@@ -90,8 +90,9 @@ export default function DebtCoach() {
         .reduce((sum, item) => sum + Number(item.amount || 0), 0),
       dataLimitations: [
         "Essential living costs may be incomplete if not entered as transactions.",
+        "The starting card bill is a saved plan figure, not a live confirmed card balance; update it after payment.",
         "Debt interest rates, minimum payments, and agreed deadlines are not recorded unless stated in chat.",
-        "Creditor names and private notes are deliberately not sent to the AI.",
+        "Creditor names and private notes are deliberately not sent to the AI. The saved starting card bill may not be the current amount due.",
         "Card repayments are not included in purchase expenses.",
       ],
     };
@@ -162,7 +163,7 @@ export default function DebtCoach() {
           <SnapshotRow label="Personal debt you owe" value={money(snapshot.totalPersonalDebt)}/>
           <SnapshotRow label="Money owed to you" value={money(snapshot.moneyOwedToYou)}/>
           <SnapshotRow label="Expected salary" value={money(snapshot.financialPlan.expectedSalary)}/>
-          <SnapshotRow label="Existing card bill" value={money(snapshot.financialPlan.existingCardBill)}/>
+          <SnapshotRow label="Saved starting card bill" value={money(snapshot.financialPlan.configuredStartingCardBill)}/>
           <SnapshotRow label="Monthly committee" value={money(snapshot.financialPlan.monthlyCommittee)}/>
           <SnapshotRow label="Card spending limit" value={money(snapshot.monthlyCardBudget)}/>
           <SnapshotRow label="This month's net expenses" value={money(snapshot.currentMonthNetExpenses)}/>
