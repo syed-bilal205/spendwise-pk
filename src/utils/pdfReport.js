@@ -27,6 +27,11 @@ export function exportFinancialReport(state, month) {
   autoTable(doc, { startY: y + 4, head: [["Date", "Description", "Category", "Type", "Amount (PKR)"]], body: transactions.map((t) => [t.date, t.merchant, t.category, t.type, money(t.amount)]), theme: "striped", headStyles: { fillColor: [49, 46, 129] }, styles: { fontSize: 8 } });
   y = doc.lastAutoTable.finalY + 10;
   if (y > 245) { doc.addPage(); y = 20; }
+  doc.setFontSize(13); doc.text("Committee contributions", 14, y);
+  const committee = (state.committeePayments || []).filter((p) => p.date?.slice(0, 7) === month);
+  autoTable(doc, { startY: y + 4, head: [["Date", "Description", "Status", "Amount (PKR)"]], body: committee.map((p) => [p.date, p.label, p.paid ? "Paid" : "Unpaid", money(p.amount)]), theme: "striped", headStyles: { fillColor: [217, 119, 6] } });
+  y = doc.lastAutoTable.finalY + 10;
+  if (y > 245) { doc.addPage(); y = 20; }
   doc.setFontSize(13); doc.text("Debt balances", 14, y);
   autoTable(doc, { startY: y + 4, head: [["Person", "Direction", "Original (PKR)", "Outstanding (PKR)"]], body: (state.debts || []).map((d) => [d.name, (d.direction || "i_owe") === "i_owe" ? "I owe" : "Owes me", money(d.amount), money(outstanding(d))]), theme: "striped", headStyles: { fillColor: [49, 46, 129] } });
   doc.save("spendwise-pk-report-" + month + ".pdf");
