@@ -61,7 +61,7 @@ function splitDebts(debts,userId) {
   const records=[],payments=[];
   debts.forEach(({payments:history=[],...debt})=>{
     records.push(toDbRecord("debts",{...debt,direction:debt.direction||"i_owe"},userId));
-    history.forEach(payment=>payments.push(owned({...payment,debt_id:debt.id},userId)));
+    history.forEach(payment=>payments.push(toDbRecord("debt_payments",{...payment,debt_id:debt.id},userId)));
   });
   return {records,payments};
 }
