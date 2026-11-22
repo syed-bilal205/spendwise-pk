@@ -10,6 +10,7 @@ import Committee from "./components/Committee";
 import Debt from "./components/Debt";
 import CashFlowPlan from "./components/CashFlowPlan";
 import DebtCoach from "./components/DebtCoach";
+import AuthScreen from "./components/AuthScreen";
 
 const COLORS = ["#4f46e5", "#0d9488", "#f59e0b", "#ec4899", "#64748b", "#8b5cf6", "#06b6d4", "#84cc16"];
 const now = new Date();
@@ -18,7 +19,14 @@ const monthName = (key) => new Date(Number(key.slice(0,4)), Number(key.slice(5,7
 const outstanding = (debt) => Math.max(0, Number(debt.amount || 0) - (debt.payments || []).reduce((sum,p) => sum + Number(p.amount || 0), 0));
 
 export default function App() {
-  const { state, dispatch } = useApp();
+  const { user, authLoading, dataLoading, supabaseConfigured } = useApp();
+  if (authLoading || (user && dataLoading)) return <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">Loading your secure SpendWise account…</div>;
+  if (!supabaseConfigured || !user) return <AuthScreen />;
+  return <Dashboard />;
+}
+
+function Dashboard() {
+  const { state, dispatch, user, signOut, syncError, syncing } = useApp();
   const [month, setMonth] = useState(currentMonth);
   const [page, setPage] = useState("overview");
   const [showForm, setShowForm] = useState(false);
@@ -61,9 +69,10 @@ export default function App() {
   return <div className="min-h-screen">
     <header className="border-b border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4">
       <div className="flex items-center gap-3"><div className="rounded-xl bg-indigo-600 p-2 text-white"><WalletCards size={22}/></div><div><h1 className="text-lg font-bold tracking-tight">SpendWise <span className="text-indigo-600">PK</span></h1><p className="text-xs text-slate-500">Your complete money picture.</p></div></div>
-      <div className="flex flex-wrap items-center gap-2"><button className="btn-secondary !px-3" onClick={() => exportFinancialReport(state,month)}><Download size={16}/><span>Export PDF</span></button><label className="btn-secondary !px-3 cursor-pointer"><Upload size={16}/><span>Restore backup</span><input type="file" accept="application/json" className="hidden" onChange={restoreBackup}/></label></div>
+      <div className="flex flex-wrap items-center gap-2"><span className="hidden text-xs text-slate-500 sm:inline">{user.email}</span><button className="btn-secondary !px-3" onClick={() => signOut()}>Sign out</button><button className="btn-secondary !px-3" onClick={() => exportFinancialReport(state,month)}><Download size={16}/><span>Export PDF</span></button><label className="btn-secondary !px-3 cursor-pointer"><Upload size={16}/><span>Restore backup</span><input type="file" accept="application/json" className="hidden" onChange={restoreBackup}/></label></div>
     </div></header>
     <main className="mx-auto max-w-7xl px-4 py-6">
+      {(syncError || syncing) && <div role="status" className={`mb-4 rounded-xl border p-3 text-sm ${syncError ? "border-rose-200 bg-rose-50 text-rose-700" : "border-indigo-100 bg-indigo-50 text-indigo-700"}`}>{syncError ? `Cloud save issue: ${syncError}` : "Saving changes to your secure account…"}</div> }
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-bold">{titles[page]}</h2><p className="mt-1 text-sm text-slate-500">Income, spending, savings and outstanding balances in one place.</p></div><div className="flex items-center gap-2"><label className="sr-only" htmlFor="report-month">Report month</label><input id="report-month" aria-label="Select month" className="field !w-auto" type="month" value={month} onChange={(e) => setMonth(e.target.value)}/>{(page === "overview" || page === "transactions") && <button className="btn" onClick={() => setShowForm((v) => !v)}><Plus size={17}/> Add expense</button>}</div></div>
       <nav className="mb-6 flex gap-2 overflow-x-auto pb-1">{nav.map(([key,Icon,label]) => <button key={key} onClick={() => { setPage(key); setShowForm(false); }} className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${page === key ? "bg-slate-900 text-white" : "border border-slate-200 bg-white text-slate-600"}`}><Icon size={16}/>{label}</button>)}</nav>
       {showForm && (page === "overview" || page === "transactions") && <div className="card mb-6 p-4"><div className="mb-4 flex justify-between"><h3 className="font-semibold">Add an expense or card transaction</h3><button className="text-sm text-slate-500" onClick={() => setShowForm(false)}>Close</button></div><TransactionForm onDone={() => setShowForm(false)}/></div>}
@@ -87,7 +96,7 @@ export default function App() {
         <section className="card mt-4 p-4"><div className="mb-3 flex items-center justify-between"><div><h3 className="font-semibold">Recent activity</h3><p className="text-xs text-slate-500">Latest expenses in {month}</p></div><button className="text-sm font-semibold text-indigo-600" onClick={() => setPage("transactions")}>View all</button></div>{monthTx.length ? monthTx.slice(0,6).map((t) => <TransactionRow key={t.id} item={t}/>) : <Empty>No transactions for this month yet.</Empty>}</section>
         <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-950"><b>Cash-flow note:</b> monthly cash flow subtracts recorded expenses, paid committee contributions and repayments you made, then adds debt repayments received. Credit-card repayments are excluded from expenses to avoid double-counting purchases.</div>
       </>}
-      <footer className="mt-8 text-center text-xs text-slate-400">SpendWise PK · Your records are saved in this browser. Keep a backup file somewhere safe.</footer>
+      <footer className="mt-8 text-center text-xs text-slate-400">SpendWise PK · Your records are stored in your private Supabase account. Export a PDF or keep a backup copy.</footer>
     </main>
   </div>;
 }
