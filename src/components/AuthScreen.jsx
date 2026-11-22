@@ -16,7 +16,7 @@ export default function AuthScreen() {
       if (mode === "signup") {
         const result = await signUp(email.trim(), password);
         setNotice(result?.needsEmailConfirmation
-          ? "Account created. Check your email to confirm it, then sign in."
+          ? "Email confirmation is still enabled for this Supabase project. Disable Confirm email in Authentication → Sign In / Providers → Email, then try signing up again."
           : "Account created. You are signed in.");
       } else {
         await signIn(email.trim(), password);

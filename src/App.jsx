@@ -57,11 +57,13 @@ function Dashboard() {
   function restoreBackup(e) {
     const file = e.target.files?.[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => { try {
+    reader.onload = async () => { try {
       const data = JSON.parse(reader.result);
       if (!Array.isArray(data.transactions) || !Array.isArray(data.committeePayments)) throw Error("Invalid backup");
-      dispatch({ type: "IMPORT_BACKUP", payload: data }); alert("Backup restored successfully.");
-    } catch { alert("This backup file is invalid."); } };
+      const saved = await dispatch({ type: "IMPORT_BACKUP", payload: data });
+      if (!saved) throw Error("Cloud save failed");
+      alert("Backup restored successfully.");
+    } catch (error) { alert(error.message === "Cloud save failed" ? "Backup could not be saved to your cloud account. Check the sync error and try again." : "This backup file is invalid."); } };
     reader.readAsText(file); e.target.value = "";
   }
   const nav = [["overview",LayoutDashboard,"Overview"],["income",TrendingUp,"Income"],["transactions",ReceiptText,"Expenses"],["debt",HandCoins,"Debt"],["committee",Users,"Committee"],["coach",Activity,"AI Coach"]];
