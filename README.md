@@ -1,6 +1,6 @@
 # SpendWise PK
 
-A local-first personal finance tracker for income, expenses, budgets, debts, and committee contributions. Built with React, Vite, Tailwind CSS, Context API + useReducer, Recharts, and jsPDF.
+A cloud-backed personal finance tracker for income, expenses, budgets, debts, and committee contributions. Built with React, Vite, Tailwind CSS, Context API + useReducer, Recharts, and jsPDF.
 
 ## Features
 - Monthly salary and other income records with history.
@@ -13,9 +13,21 @@ A local-first personal finance tracker for income, expenses, budgets, debts, and
 - Export a monthly financial report as PDF.
 - Restore an existing JSON backup from an earlier version.
 
+## Supabase setup
+
+The app uses the dedicated Supabase project `SpendWise` for authentication and cloud records. Configure these Vite environment variables locally and in Netlify (Site configuration → Environment variables):
+
+- `VITE_SUPABASE_URL=https://umvlozdoztgzfjctrcim.supabase.co`
+- `VITE_SUPABASE_PUBLISHABLE_KEY` = the project's publishable key from Supabase → Project Settings → API Keys
+
+Use the publishable key only; never put a `service_role` or secret key in frontend variables. Supabase Auth uses email/password. If email confirmation is enabled, confirm your address before signing in.
+
+On the first sign-in, existing `spendwise-pk-v1` browser data is imported to your account if its cloud tables are empty. The old browser copy is kept until the import succeeds. After migration, the app reads and writes financial records in Supabase; it no longer continuously stores the app state in LocalStorage. Export PDF and restore JSON backup remain available.
+
 ## Run locally
 ```bash
 npm install
+cp .env.example .env
 npm run dev
 ```
 
@@ -38,7 +50,7 @@ The included `netlify.toml` configures these values.
 - Debt repayments reduce outstanding debt and are included in cash-flow reporting, not purchase spending.
 - Committee contributions are tracked separately from consumption spending.
 - Existing debt records without a direction are preserved as money you owe.
-- Data is stored in this browser's LocalStorage. PDF is a readable report, not a restorable backup. Existing JSON backup files can still be restored.
+- Financial records are stored in Supabase Postgres with per-user Row Level Security. PDF is a readable report, not a restorable backup. JSON backup restore remains available.
 - Never enter card numbers, CVV, PINs, passwords, or banking credentials.
 
 ## Main code areas
