@@ -20,7 +20,7 @@ The app uses the dedicated Supabase project `SpendWise` for authentication and c
 - `VITE_SUPABASE_URL=https://umvlozdoztgzfjctrcim.supabase.co`
 - `VITE_SUPABASE_PUBLISHABLE_KEY` = the project's publishable key from Supabase → Project Settings → API Keys
 
-Use the publishable key only; never put a `service_role` or secret key in frontend variables. Supabase Auth uses email/password. If email confirmation is enabled, confirm your address before signing in.
+Use the publishable key only; never put a `service_role` or secret key in frontend variables. Supabase Auth uses email/password. To allow sign-up without email verification, open Supabase Dashboard → Authentication → Sign In / Providers → Email and switch off **Confirm email**. This is a project-level Auth setting, not a frontend code setting.
 
 On the first sign-in, existing `spendwise-pk-v1` browser data is imported to your account if its cloud tables are empty. The old browser copy is kept until the import succeeds. After migration, the app reads and writes financial records in Supabase; it no longer continuously stores the app state in LocalStorage. Export PDF and restore JSON backup remain available.
 
