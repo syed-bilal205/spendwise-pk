@@ -48,14 +48,19 @@ function reducer(state, action) {
 }
 const Context = createContext(null);
 function check(result) { if (result.error) throw result.error; return result.data; }
-const owned = (row, userId) => ({ ...row, user_id: userId });
+function toDbRecord(table, row, userId) {
+  const { createdAt, ...clean } = row;
+  const record = { ...clean, user_id: userId };
+  if (createdAt && ["transactions", "incomes", "debts"].includes(table)) record.created_at = createdAt;
+  return record;
+}
 async function upsert(table, row, userId) {
-  check(await supabase.from(table).upsert(owned(row,userId), { onConflict:"user_id,id" }));
+  check(await supabase.from(table).upsert(toDbRecord(table,row,userId), { onConflict:"user_id,id" }));
 }
 function splitDebts(debts,userId) {
   const records=[],payments=[];
   debts.forEach(({payments:history=[],...debt})=>{
-    records.push(owned({...debt,direction:debt.direction||"i_owe"},userId));
+    records.push(toDbRecord("debts",{...debt,direction:debt.direction||"i_owe"},userId));
     history.forEach(payment=>payments.push(owned({...payment,debt_id:debt.id},userId)));
   });
   return {records,payments};
@@ -69,7 +74,7 @@ async function importSnapshot(userId, raw) {
     ["transactions",data.transactions],["incomes",data.incomes],
     ["committee_payments",data.committeePayments],["debts",records],["debt_payments",payments],
   ];
-  for (const [table,rows] of batches) if(rows.length) check(await supabase.from(table).upsert(rows,{onConflict:"user_id,id"}));
+  for (const [table,rows] of batches) if(rows.length) check(await supabase.from(table).upsert(rows.map(row=>toDbRecord(table,row,userId)),{onConflict:"user_id,id"}));
   check(await supabase.from("user_settings").upsert({user_id:userId,settings:data.settings,updated_at:new Date().toISOString()},{onConflict:"user_id"}));
 }
 async function loadSnapshot(userId) {
@@ -124,7 +129,7 @@ export function AppProvider({children}) {
   const [state,internalDispatch]=useReducer(reducer,initial);
   const [user,setUser]=useState(null),[authLoading,setAuthLoading]=useState(true),[dataLoading,setDataLoading]=useState(false);
   const [authError,setAuthError]=useState(""),[syncError,setSyncError]=useState(""),[syncing,setSyncing]=useState(false);
-  const userRef=useRef(null),activeLoad=useRef(0),pendingWrites=useRef(0);
+  const userRef=useRef(null),activeLoad=useRef(0),pendingWrites=useRef(0),writeQueue=useRef(Promise.resolve());
   useEffect(()=>{
     if(!supabaseConfigured){setAuthLoading(false);return;}
     let mounted=true;
@@ -170,13 +175,26 @@ export function AppProvider({children}) {
     return {needsEmailConfirmation:!data.session};
   }
   async function signOut() { const {error}=await supabase.auth.signOut();if(error)throw error; }
-  function dispatch(action) {
-    internalDispatch(action);
+  async function dispatch(action) {
     const activeUser=userRef.current;
-    if(activeUser) {
-      pendingWrites.current+=1;setSyncing(true);setSyncError("");
-      saveAction(action,activeUser.id).catch(error=>setSyncError(error.message||"Could not save this change to Supabase."))
-        .finally(()=>{pendingWrites.current=Math.max(0,pendingWrites.current-1);setSyncing(pendingWrites.current>0);});
+    if (!activeUser) {
+      setSyncError("Your account is not ready. Please wait for cloud sync to finish before changing records.");
+      return false;
+    }
+    pendingWrites.current+=1;setSyncing(true);setSyncError("");
+    const write=writeQueue.current.catch(()=>{}).then(()=>saveAction(action,activeUser.id));
+    writeQueue.current=write;
+    try {
+      await write;
+      if (userRef.current?.id !== activeUser.id) return false;
+      internalDispatch(action);
+      return true;
+    } catch(error) {
+      setSyncError(error.message||"Could not save this change to Supabase. Your record was not added.");
+      return false;
+    } finally {
+      pendingWrites.current=Math.max(0,pendingWrites.current-1);
+      setSyncing(pendingWrites.current>0);
     }
   }
   const addTransaction=data=>dispatch({type:"ADD_TRANSACTION",payload:{...data,id:id(),amount:Number(data.amount),createdAt:new Date().toISOString()}});
