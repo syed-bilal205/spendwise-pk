@@ -8,6 +8,8 @@ const categories = [
   "Fuel",
   "Pharmacy",
   "Food & dining",
+  "Transport",
+  "Bills",
   "Mobile",
   "Netflix",
   "Other",
@@ -24,14 +26,15 @@ export default function TransactionForm({ onDone }) {
     planned: false,
   });
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     if (!form.date || !(Number(form.amount) > 0)) return;
-    addTransaction({
+    const saved = await addTransaction({
       ...form,
       amount: Number(form.amount),
       merchant: form.merchant.trim() || "Unspecified",
     });
+    if (!saved) return;
     setForm((f) => ({ ...f, amount: "", merchant: "", note: "" }));
     onDone?.();
   }
