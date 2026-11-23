@@ -129,14 +129,20 @@ export function AppProvider({children}) {
   const [state,internalDispatch]=useReducer(reducer,initial);
   const [user,setUser]=useState(null),[authLoading,setAuthLoading]=useState(true),[dataLoading,setDataLoading]=useState(false);
   const [authError,setAuthError]=useState(""),[syncError,setSyncError]=useState(""),[syncing,setSyncing]=useState(false);
-  const userRef=useRef(null),activeLoad=useRef(0),pendingWrites=useRef(0),writeQueue=useRef(Promise.resolve());
+  const userRef=useRef(null),activeLoad=useRef(0),loadingUserId=useRef(null),loadedUserId=useRef(null),pendingWrites=useRef(0),writeQueue=useRef(Promise.resolve());
   useEffect(()=>{
     if(!supabaseConfigured){setAuthLoading(false);return;}
     let mounted=true;
     async function handleSession(session) {
-      const ticket=++activeLoad.current, nextUser=session?.user||null;
+      const nextUser=session?.user||null;
+      if(nextUser && (loadedUserId.current===nextUser.id || loadingUserId.current===nextUser.id)) return;
+      const ticket=++activeLoad.current;
       userRef.current=nextUser;setUser(nextUser);setSyncError("");
-      if(!nextUser){internalDispatch({type:"IMPORT_BACKUP",payload:initial});setDataLoading(false);return;}
+      if(!nextUser){
+        loadingUserId.current=null;loadedUserId.current=null;
+        internalDispatch({type:"IMPORT_BACKUP",payload:initial});setDataLoading(false);return;
+      }
+      loadingUserId.current=nextUser.id;
       setDataLoading(true);
       try {
         const cloud=await loadSnapshot(nextUser.id);
@@ -154,8 +160,11 @@ export function AppProvider({children}) {
             internalDispatch({type:"IMPORT_BACKUP",payload:cloud});
           }
         } else internalDispatch({type:"IMPORT_BACKUP",payload:cloud});
+        loadedUserId.current=nextUser.id;
       } catch(error) { if(ticket===activeLoad.current)setSyncError(error.message||"Could not load your cloud records."); }
-      finally { if(mounted&&ticket===activeLoad.current)setDataLoading(false); }
+      finally {
+        if(mounted&&ticket===activeLoad.current){loadingUserId.current=null;setDataLoading(false);}
+      }
     }
     supabase.auth.getSession().then(({data,error})=>{if(error)throw error;return handleSession(data.session);})
       .catch(error=>setAuthError(error.message||"Could not check your session."))
