@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useApp } from "../state/AppContext";
 import { money } from "../utils/finance";
 
@@ -13,6 +15,8 @@ const DEFAULT_PLAN = {
 
 export default function CashFlowPlan() {
   const { state, dispatch } = useApp();
+  const [minimized, setMinimized] = useState(() => localStorage.getItem("spendwise-money-plan-minimized") === "true");
+  useEffect(() => { localStorage.setItem("spendwise-money-plan-minimized", String(minimized)); }, [minimized]);
   const plan = { ...DEFAULT_PLAN, ...(state.settings?.financialPlan || {}) };
   const update = (key, value) => dispatch({
     type: "SET_FINANCIAL_PLAN",
@@ -30,15 +34,20 @@ export default function CashFlowPlan() {
       (d.payments || []).reduce((s, p) => s + Number(p.amount || 0), 0)), 0);
 
   return <section className="card mb-4 p-4 sm:p-5">
-    <div className="flex flex-wrap items-start justify-between gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h3 className="text-lg font-bold">Your money plan</h3>
-        <p className="mt-1 text-sm text-slate-500">Clear the old bill first. Then control card spending and reduce personal debt.</p>
+        {!minimized && <p className="mt-1 text-sm text-slate-500">Clear the old bill first. Then control card spending and reduce personal debt.</p>}
       </div>
-      <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">December recovery plan</span>
+      <div className="flex items-center gap-2">
+        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">December recovery plan</span>
+        <button type="button" className="btn-secondary !px-3 !py-2" onClick={() => setMinimized((value) => !value)} aria-expanded={!minimized} aria-label={minimized ? "Expand Your money plan" : "Minimize Your money plan"} title={minimized ? "Expand" : "Minimize"}>
+          {minimized ? <ChevronDown size={17} /> : <ChevronUp size={17} />}
+        </button>
+      </div>
     </div>
 
-    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    {!minimized && <>
       <Field label="Expected December salary" value={plan.expectedSalary} onChange={(v) => update("expectedSalary", v)} />
       <Field label="Expected salary date" type="date" value={plan.salaryDate} onChange={(v) => update("salaryDate", v)} />
       <Field label="Existing card bill (PKR)" value={plan.openingCardBill} onChange={(v) => update("openingCardBill", v)} step="0.01" />
@@ -66,7 +75,7 @@ export default function CashFlowPlan() {
       {afterDecemberObligations < 0 && <p className="mt-3 font-semibold text-rose-700">December has a {money(Math.abs(afterDecemberObligations))} shortfall before daily living expenses. Do not treat the future debt target as available this month.</p>}
       {forwardAllocation >= Number(plan.monthlyDebtTarget) && <p className="mt-2 text-xs text-emerald-700">The planned debt target fits the headline allocation, but confirm your essential living costs before committing to it.</p>}
     </div>
-  </section>;
+    </>\n  </section>;
 }
 
 function Field({ label, value, onChange, type = "number", step = "1" }) {
