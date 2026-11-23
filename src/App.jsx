@@ -27,7 +27,7 @@ const outstanding = (debt) => Math.max(0, Number(debt.amount || 0) - (debt.payme
 
 export default function App() {
   const { user, authLoading, dataLoading, supabaseConfigured } = useApp();
-  if (authLoading || (user && dataLoading)) return <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">Loading your secure SpendWise account…</div>;
+  if (authLoading || (user && dataLoading)) return <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4"><div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm"><div className="rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 p-2.5 text-white"><WalletCards size={21}/></div><div><p className="text-sm font-semibold text-slate-800">SpendWise PK</p><p className="mt-0.5 text-xs text-slate-500">Preparing your account…</p></div><span className="ml-2 h-4 w-4 animate-spin rounded-full border-2 border-indigo-100 border-t-indigo-600" aria-label="Loading"/></div></main>;
   if (!supabaseConfigured || !user) return <AuthScreen />;
   return <Dashboard />;
 }
