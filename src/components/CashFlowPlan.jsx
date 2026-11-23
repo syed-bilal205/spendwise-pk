@@ -48,34 +48,36 @@ export default function CashFlowPlan() {
     </div>
 
     {!minimized && <>
-      <Field label="Expected December salary" value={plan.expectedSalary} onChange={(v) => update("expectedSalary", v)} />
-      <Field label="Expected salary date" type="date" value={plan.salaryDate} onChange={(v) => update("salaryDate", v)} />
-      <Field label="Existing card bill (PKR)" value={plan.openingCardBill} onChange={(v) => update("openingCardBill", v)} step="0.01" />
-      <Field label="Card bill due date" type="date" value={plan.cardBillDueDate} onChange={(v) => update("cardBillDueDate", v)} />
-      <Field label="Monthly committee (PKR)" value={plan.monthlyCommittee} onChange={(v) => update("monthlyCommittee", v)} />
-      <Field label="Committee due day" value={plan.committeeDueDay} onChange={(v) => update("committeeDueDay", v)} />
-      <Field label="Monthly debt target (PKR)" value={plan.monthlyDebtTarget} onChange={(v) => update("monthlyDebtTarget", v)} />
-    </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Field label="Expected December salary" value={plan.expectedSalary} onChange={(v) => update("expectedSalary", v)} />
+        <Field label="Expected salary date" type="date" value={plan.salaryDate} onChange={(v) => update("salaryDate", v)} />
+        <Field label="Existing card bill (PKR)" value={plan.openingCardBill} onChange={(v) => update("openingCardBill", v)} step="0.01" />
+        <Field label="Card bill due date" type="date" value={plan.cardBillDueDate} onChange={(v) => update("cardBillDueDate", v)} />
+        <Field label="Monthly committee (PKR)" value={plan.monthlyCommittee} onChange={(v) => update("monthlyCommittee", v)} />
+        <Field label="Committee due day" value={plan.committeeDueDay} onChange={(v) => update("committeeDueDay", v)} />
+        <Field label="Monthly debt target (PKR)" value={plan.monthlyDebtTarget} onChange={(v) => update("monthlyDebtTarget", v)} />
+      </div>
 
-    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      <Result label="December after old card bill + committee" value={money(afterDecemberObligations)} negative={afterDecemberObligations < 0} note="Before groceries, fuel and other living costs." />
-      <Result label="Future monthly allocation" value={money(forwardAllocation)} negative={forwardAllocation < 0} note="Salary less Rs.70k card cap and committee; before living costs." />
-      <Result label="Personal debt still outstanding" value={money(debtTotal)} note="Based on your recorded debts and repayments." />
-    </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <Result label="December after old card bill + committee" value={money(afterDecemberObligations)} negative={afterDecemberObligations < 0} note="Before groceries, fuel and other living costs." />
+        <Result label="Future monthly allocation" value={money(forwardAllocation)} negative={forwardAllocation < 0} note="Salary less Rs.70k card cap and committee; before living costs." />
+        <Result label="Personal debt still outstanding" value={money(debtTotal)} note="Based on your recorded debts and repayments." />
+      </div>
 
-    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
-      <p className="font-semibold">Your plan in order</p>
-      <ol className="mt-2 list-decimal space-y-1 pl-5 text-slate-600">
-        <li>Receive salary (currently expected around 7–9 December; edit the date above when confirmed).</li>
-        <li>Pay the existing card bill of {money(cardBill)} by {plan.cardBillDueDate || "the due date"}. This settles old purchases; it is not a new expense.</li>
-        <li>Pay the separate {money(committee)} committee contribution.</li>
-        <li>Keep new card purchases within the {money(budget)} monthly limit.</li>
-        <li>Use the real surplus after essential living costs to repay personal debt.</li>
-      </ol>
-      {afterDecemberObligations < 0 && <p className="mt-3 font-semibold text-rose-700">December has a {money(Math.abs(afterDecemberObligations))} shortfall before daily living expenses. Do not treat the future debt target as available this month.</p>}
-      {forwardAllocation >= Number(plan.monthlyDebtTarget) && <p className="mt-2 text-xs text-emerald-700">The planned debt target fits the headline allocation, but confirm your essential living costs before committing to it.</p>}
-    </div>
-    </>\n  </section>;
+      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
+        <p className="font-semibold">Your plan in order</p>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-slate-600">
+          <li>Receive salary (currently expected around 7–9 December; edit the date above when confirmed).</li>
+          <li>Pay the existing card bill of {money(cardBill)} by {plan.cardBillDueDate || "the due date"}. This settles old purchases; it is not a new expense.</li>
+          <li>Pay the separate {money(committee)} committee contribution.</li>
+          <li>Keep new card purchases within the {money(budget)} monthly limit.</li>
+          <li>Use the real surplus after essential living costs to repay personal debt.</li>
+        </ol>
+        {afterDecemberObligations < 0 && <p className="mt-3 font-semibold text-rose-700">December has a {money(Math.abs(afterDecemberObligations))} shortfall before daily living expenses. Do not treat the future debt target as available this month.</p>}
+        {forwardAllocation >= Number(plan.monthlyDebtTarget) && <p className="mt-2 text-xs text-emerald-700">The planned debt target fits the headline allocation, but confirm your essential living costs before committing to it.</p>}
+      </div>
+    </>}
+  </section>;
 }
 
 function Field({ label, value, onChange, type = "number", step = "1" }) {
