@@ -30,13 +30,13 @@ export default function CashFlowPlan() {
   const livingCostsAndBuffer = Number(plan.livingCostsAndBuffer) || 0;
   const afterDecemberObligations = salary - cardBill - committee;
   const availableForDebt = salary - cardBill - committee - livingCostsAndBuffer;
-  const safeDebtBudget = Math.max(0, Math.min(availableForDebt, Number(plan.monthlyDebtTarget) || 0, debtTotal));
-  const cashLeftAfterDebt = Math.max(0, availableForDebt - safeDebtBudget);
   const forwardAllocation = salary - budget - committee;
   const debtTotal = (state.debts || [])
     .filter((d) => (d.direction || "i_owe") === "i_owe")
     .reduce((sum, d) => sum + Math.max(0, Number(d.amount || 0) -
       (d.payments || []).reduce((s, p) => s + Number(p.amount || 0), 0)), 0);
+  const safeDebtBudget = Math.max(0, Math.min(availableForDebt, Number(plan.monthlyDebtTarget) || 0, debtTotal));
+  const cashLeftAfterDebt = Math.max(0, availableForDebt - safeDebtBudget);
 
   return <section className="card mb-4 p-4 sm:p-5">
     <div className="flex flex-wrap items-center justify-between gap-3">
